@@ -39,28 +39,16 @@ exports.createUser = async (req, res) => {
 // POST users/signin
 // Public
 exports.signInUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { id, username, email } = req.user;
 
     try {
-        // Check if email and password fields are not empty
-        if (!email || !password) {
-            return res.status(400).json({ success: false, message: "email and password fields are required." });
-        }
-
-        // Check if user exists
-        const user = await User.findOne({ where: { email } });
-
-        if (!user) {
-            return res.status(400).json({ success: false, message: "account not found." });
-        }
-
         // Create and assign JWT token
-        const token = JWT.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token = JWT.sign({ id, email, username }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
         // Set cookie
         res.cookie("authToken", token, { httpOnly: true, maxAge: 3600000 });
 
-        return res.status(200).json({ success: true, message: `account ${user.email} has logged in`, token });
+        return res.status(200).json({ success: true, message: `account ${email} has logged in`, token });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }

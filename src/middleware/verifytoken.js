@@ -7,7 +7,7 @@ exports.verifyToken = (req, res, next) => {
     // If token is not found
     if (!token) {
         res.clearCookie("authToken");
-        return res.status(401).json({ success: false, message: "Access denied" });
+        return res.status(403).json({ success: false, message: "Access denied" });
     }
 
     // Verify token

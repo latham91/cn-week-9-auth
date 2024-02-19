@@ -28,8 +28,10 @@ exports.comparePassword = async (req, res, next) => {
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if (!passwordMatch) {
-            return res.status(400).json({ success: false, message: "invalid credentials" });
+            return res.status(403).json({ success: false, message: "invalid credentials" });
         }
+
+        req.user = user;
 
         next();
     } catch (error) {
