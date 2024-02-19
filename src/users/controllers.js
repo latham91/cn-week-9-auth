@@ -6,30 +6,32 @@ const JWT = require("jsonwebtoken");
 // POST users/signup
 // Public
 exports.createUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { username, email, password } = req.body;
     try {
         // Check if email and password fields are not empty
-        if (!email || !password) {
-            return res.status(400).json({ success: false, error: "email and password fields are required." });
+        if (!username || !email || !password) {
+            return res
+                .status(400)
+                .json({ success: false, message: "email, username and password fields are required." });
         }
 
         if (password.length < 6) {
-            return res.status(400).json({ success: false, error: "password must be at least 6 characters long." });
+            return res.status(400).json({ success: false, message: "password must be at least 6 characters long." });
         }
 
         // Check if email already exists
         const userExists = await User.findOne({ where: { email } });
 
         if (userExists) {
-            return res.status(400).json({ success: false, error: "user with this email already exists." });
+            return res.status(400).json({ success: false, message: "user with this email already exists." });
         }
 
         // Hash the password
-        const salt = await bcrypt.genSaltSync(10);
-        const hashedPassword = await bcrypt.hashSync(password, salt);
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
         // Create a new user
-        const newUser = await User.create({ email, password: hashedPassword });
+        const newUser = await User.create({ username, email, password: hashedPassword });
 
         return res.status(201).json({ success: true, data: newUser });
     } catch (error) {

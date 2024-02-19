@@ -4,9 +4,11 @@ const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
+// Model imports
+const User = require("./users/model");
+
 // Route imports
 const userRoutes = require("./users/routes");
-const User = require("./users/model");
 
 const port = process.env.PORT || 5001;
 const app = express();
@@ -22,6 +24,11 @@ if (process.env.NODE_ENV === "development") {
 const syncTables = async () => {
     await User.sync();
 };
+
+// Health check route
+app.get("/health", (req, res) => {
+    res.status(200).json({ success: true, message: "API is healthy" });
+});
 
 // Routes
 app.use("/users", userRoutes);
