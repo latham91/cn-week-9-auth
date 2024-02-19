@@ -4,9 +4,11 @@ const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
+// Model imports
+const User = require("./users/model");
+
 // Route imports
 const userRoutes = require("./users/routes");
-const User = require("./users/model");
 
 const port = process.env.PORT || 5001;
 const app = express();
