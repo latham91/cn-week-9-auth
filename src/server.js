@@ -23,6 +23,11 @@ const syncTables = async () => {
     await User.sync();
 };
 
+// Health check route
+app.get("/health", (req, res) => {
+    res.status(200).json({ success: true, message: "API is healthy" });
+});
+
 // Routes
 app.use("/users", userRoutes);
 
