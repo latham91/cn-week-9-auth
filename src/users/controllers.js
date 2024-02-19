@@ -1,5 +1,4 @@
 const User = require("./model");
-const bcrypt = require("bcrypt");
 const JWT = require("jsonwebtoken");
 
 // Create a new user
@@ -7,6 +6,7 @@ const JWT = require("jsonwebtoken");
 // Public
 exports.createUser = async (req, res) => {
     const { username, email, password } = req.body;
+
     try {
         // Check if email and password fields are not empty
         if (!username || !email || !password) {
@@ -26,14 +26,10 @@ exports.createUser = async (req, res) => {
             return res.status(400).json({ success: false, message: "user with this email already exists." });
         }
 
-        // Hash the password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
         // Create a new user
-        const newUser = await User.create({ username, email, password: hashedPassword });
+        const newUser = await User.create({ username, email, password });
 
-        return res.status(201).json({ success: true, data: newUser });
+        return res.status(201).json({ success: true, message: "user created", data: newUser });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
@@ -56,13 +52,6 @@ exports.signInUser = async (req, res) => {
 
         if (!user) {
             return res.status(400).json({ success: false, message: "account not found." });
-        }
-
-        // Check if password is correct
-        const passwordMatch = await bcrypt.compare(password, user.password);
-
-        if (!passwordMatch) {
-            return res.status(400).json({ success: false, message: "invalid credentials" });
         }
 
         // Create and assign JWT token
