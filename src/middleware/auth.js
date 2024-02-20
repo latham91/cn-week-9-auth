@@ -19,7 +19,10 @@ exports.comparePassword = async (req, res, next) => {
     const { password, email } = req.body;
 
     try {
-        const user = await User.findOne({ where: { email } });
+        const user = await User.findOne({
+            where: { email },
+            attributes: ["id", "username", "email", "createdAt", "updatedAt"],
+        });
 
         if (!user) {
             return res.status(400).json({ success: false, message: "account not found." });
@@ -28,7 +31,7 @@ exports.comparePassword = async (req, res, next) => {
         const passwordMatch = await bcrypt.compare(password, user.password);
 
         if (!passwordMatch) {
-            return res.status(403).json({ success: false, message: "invalid credentials" });
+            return res.status(401).json({ success: false, message: "invalid credentials" });
         }
 
         req.user = user;

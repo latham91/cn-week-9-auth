@@ -48,7 +48,9 @@ exports.signInUser = async (req, res) => {
         // Set cookie
         res.cookie("authToken", token, { httpOnly: true, maxAge: 3600000 });
 
-        return res.status(200).json({ success: true, message: `account ${email} has logged in`, token });
+        return res
+            .status(200)
+            .json({ success: true, message: `account ${email} has logged in`, token, user: req.user });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
@@ -56,7 +58,7 @@ exports.signInUser = async (req, res) => {
 
 // Get all users
 // GET users
-// Private TODO: Add authentication middleware
+// Private (requires jwt token)
 exports.getAllUsers = async (req, res) => {
     try {
         // Return
