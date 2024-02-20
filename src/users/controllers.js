@@ -64,9 +64,7 @@ exports.getAllUsers = async (req, res) => {
         // Return
         const users = await User.findAll({ attributes: { exclude: ["password"] } });
 
-        return res
-            .status(200)
-            .json({ success: true, message: "all users returned", count: users.length, data: users, user: req.user }); // user is for testing purposes only
+        return res.status(200).json({ success: true, message: "all users returned", count: users.length, users }); // user is for testing purposes only
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
