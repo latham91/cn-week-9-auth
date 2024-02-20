@@ -21,7 +21,6 @@ exports.comparePassword = async (req, res, next) => {
     try {
         const user = await User.findOne({
             where: { email },
-            attributes: ["id", "username", "email", "createdAt", "updatedAt"],
         });
 
         if (!user) {
@@ -34,7 +33,7 @@ exports.comparePassword = async (req, res, next) => {
             return res.status(401).json({ success: false, message: "invalid credentials" });
         }
 
-        req.user = user;
+        req.user = { id: user.id, email: user.email, username: user.username };
 
         next();
     } catch (error) {

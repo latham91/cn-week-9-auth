@@ -71,3 +71,11 @@ exports.getAllUsers = async (req, res) => {
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
 };
+
+exports.verifyUser = async (req, res) => {
+    try {
+        return res.status(200).json({ success: true, message: "user verified", user: req.user });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
+    }
+};
