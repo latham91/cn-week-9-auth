@@ -1,5 +1,4 @@
 const User = require("./model");
-const bcrypt = require("bcrypt");
 const JWT = require("jsonwebtoken");
 
 // Create a new user
@@ -7,6 +6,7 @@ const JWT = require("jsonwebtoken");
 // Public
 exports.createUser = async (req, res) => {
     const { username, email, password } = req.body;
+
     try {
         // Check if email and password fields are not empty
         if (!username || !email || !password) {
@@ -26,14 +26,10 @@ exports.createUser = async (req, res) => {
             return res.status(400).json({ success: false, message: "user with this email already exists." });
         }
 
-        // Hash the password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
         // Create a new user
-        const newUser = await User.create({ username, email, password: hashedPassword });
+        const newUser = await User.create({ username, email, password });
 
-        return res.status(201).json({ success: true, data: newUser });
+        return res.status(201).json({ success: true, message: "user created", data: newUser });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
@@ -43,35 +39,18 @@ exports.createUser = async (req, res) => {
 // POST users/signin
 // Public
 exports.signInUser = async (req, res) => {
-    const { email, password } = req.body;
+    const { id, username, email } = req.user;
 
     try {
-        // Check if email and password fields are not empty
-        if (!email || !password) {
-            return res.status(400).json({ success: false, message: "email and password fields are required." });
-        }
-
-        // Check if user exists
-        const user = await User.findOne({ where: { email } });
-
-        if (!user) {
-            return res.status(400).json({ success: false, message: "account not found." });
-        }
-
-        // Check if password is correct
-        const passwordMatch = await bcrypt.compare(password, user.password);
-
-        if (!passwordMatch) {
-            return res.status(400).json({ success: false, message: "invalid credentials" });
-        }
-
         // Create and assign JWT token
-        const token = JWT.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token = JWT.sign({ id, email, username }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
         // Set cookie
         res.cookie("authToken", token, { httpOnly: true, maxAge: 3600000 });
 
-        return res.status(200).json({ success: true, message: `account ${user.email} has logged in`, token });
+        return res
+            .status(200)
+            .json({ success: true, message: `account ${email} has logged in`, token, user: req.user });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
@@ -79,7 +58,7 @@ exports.signInUser = async (req, res) => {
 
 // Get all users
 // GET users
-// Private TODO: Add authentication middleware
+// Private (requires jwt token)
 exports.getAllUsers = async (req, res) => {
     try {
         // Return
@@ -88,6 +67,14 @@ exports.getAllUsers = async (req, res) => {
         return res
             .status(200)
             .json({ success: true, message: "all users returned", count: users.length, data: users, user: req.user }); // user is for testing purposes only
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
+    }
+};
+
+exports.verifyUser = async (req, res) => {
+    try {
+        return res.status(200).json({ success: true, message: "user verified", user: req.user });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
