@@ -6,9 +6,11 @@ const cors = require("cors");
 
 // Model imports
 const User = require("./users/model");
+const Book = require("./books/model");
 
 // Route imports
 const userRoutes = require("./users/routes");
+const bookRoutes = require("./books/routes");
 
 const port = process.env.PORT || 5001;
 const app = express();
@@ -27,7 +29,11 @@ if (process.env.NODE_ENV === "development") {
 }
 
 const syncTables = async () => {
+    User.hasMany(Book);
+    Book.belongsTo(User);
+
     await User.sync();
+    await Book.sync();
 };
 
 // Health check route
@@ -37,6 +43,7 @@ app.get("/health", (req, res) => {
 
 // Routes
 app.use("/users", userRoutes);
+app.use("/books", bookRoutes);
 
 app.listen(port, () => {
     syncTables();

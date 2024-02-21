@@ -22,6 +22,10 @@ const User = sequelize.define(
             allowNull: false,
             required: true,
         },
+        name: {
+            type: DataTypes.STRING,
+            defaultValue: "Unknown",
+        },
     },
     { timestamps: true }
 );
