@@ -5,7 +5,7 @@ const JWT = require("jsonwebtoken");
 // POST users/signup
 // Public
 exports.createUser = async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, email, password, name } = req.body;
 
     try {
         // Check if email and password fields are not empty
@@ -27,7 +27,7 @@ exports.createUser = async (req, res) => {
         }
 
         // Create a new user
-        const newUser = await User.create({ username, email, password });
+        const newUser = await User.create({ username, email, password, name });
 
         return res.status(201).json({ success: true, message: "user created", data: newUser });
     } catch (error) {
@@ -46,7 +46,7 @@ exports.signInUser = async (req, res) => {
         const token = JWT.sign({ id, email, username }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
         // Set cookie
-        res.cookie("authToken", token, { httpOnly: true, maxAge: 3600000 });
+        res.cookie("authToken", token, { httpOnly: true, expiresIn: "15m" });
 
         return res
             .status(200)
@@ -70,9 +70,66 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
+exports.getUsersBooks = async (req, res) => {
+    try {
+        const user = await User.findByPk(req.params.id, { attributes: { exclude: ["password"] }, include: "books" });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "user not found" });
+        }
+
+        return res.status(200).json({ success: true, message: "user's books returned", user });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
+    }
+};
+
+exports.updateUserById = async (req, res) => {
+    const { id } = req.params;
+    const { email, username, password } = req.body;
+
+    if (parseInt(req.body.id) !== parseInt(id)) {
+        return res.status(403).json({ success: false, message: "unauthorized" });
+    }
+
+    if (!email || !username || !password) {
+        return res.status(400).json({ success: false, message: "email, username and password fields are required." });
+    }
+
+    try {
+        const user = await User.update({ email, username, password }, { where: { id } });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "user not found" });
+        }
+
+        return res.status(200).json({ success: true, message: "user updated", user });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
+    }
+};
+
+exports.deleteUserById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await User.destroy({ where: { id } });
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "user not found" });
+        }
+
+        return res.status(200).json({ success: true, message: "user deleted", user });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
+    }
+};
+
 exports.verifyUser = async (req, res) => {
     try {
-        return res.status(200).json({ success: true, message: "user verified", user: req.user });
+        const user = await User.findByPk(req.user.id, { attributes: { exclude: ["password"] } });
+
+        return res.status(200).json({ success: true, message: "user verified", user });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
