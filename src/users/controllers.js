@@ -39,18 +39,16 @@ exports.createUser = async (req, res) => {
 // POST users/signin
 // Public
 exports.signInUser = async (req, res) => {
-    const { id, username, email } = req.user;
+    const { id, username, email, name } = req.user;
 
     try {
         // Create and assign JWT token
-        const token = JWT.sign({ id, email, username }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token = JWT.sign({ id, email, username, name }, process.env.JWT_SECRET, { expiresIn: "1m" });
 
         // Set cookie
-        res.cookie("authToken", token, { httpOnly: true, expiresIn: "15m" });
+        res.cookie("authToken", token, { httpOnly: true, expires: new Date(Date.now() + 60000) });
 
-        return res
-            .status(200)
-            .json({ success: true, message: `account ${email} has logged in`, token, user: req.user });
+        return res.status(200).json({ success: true, message: `account ${email} has logged in`, token });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error", error: error.message });
     }
@@ -86,18 +84,20 @@ exports.getUsersBooks = async (req, res) => {
 
 exports.updateUserById = async (req, res) => {
     const { id } = req.params;
-    const { email, username, password } = req.body;
+    const { email, username, password, name } = req.body;
 
     if (parseInt(req.body.id) !== parseInt(id)) {
         return res.status(403).json({ success: false, message: "unauthorized" });
     }
 
-    if (!email || !username || !password) {
-        return res.status(400).json({ success: false, message: "email, username and password fields are required." });
+    if (!email || !username || !password || !name) {
+        return res
+            .status(400)
+            .json({ success: false, message: "email, username, name, and password fields are required." });
     }
 
     try {
-        const user = await User.update({ email, username, password }, { where: { id } });
+        const user = await User.update({ email, username, password, name }, { where: { id } });
 
         if (!user) {
             return res.status(404).json({ success: false, message: "user not found" });
